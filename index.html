@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="es" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BankUp - Premium Neobank</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    
+    * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      letter-spacing: -0.01em;
+    }
+
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(0, 112, 255, 0.3); }
+      50% { box-shadow: 0 0 30px rgba(0, 112, 255, 0.5); }
+    }
+
+    .glow-effect {
+      animation: glow-pulse 3s ease-in-out infinite;
+    }
+
+    .glass-morphism {
+      background: rgba(18, 18, 18, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .glossy-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glossy-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.5s;
+    }
+
+    .glossy-card:hover::before {
+      left: 100%;
+    }
+
+    @keyframes bar-grow {
+      from { transform: scaleY(0); }
+      to { transform: scaleY(1); }
+    }
+
+    .chart-bar {
+      transform-origin: bottom;
+      animation: bar-grow 0.8s ease-out forwards;
+    }
+
+    .nav-item {
+      position: relative;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .nav-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 0;
+      background: #0070FF;
+      transition: height 0.3s ease;
+      box-shadow: 0 0 10px rgba(0, 112, 255, 0.8);
+    }
+
+    .nav-item:hover::before,
+    .nav-item.active::before {
+      height: 60%;
+    }
+
+    @keyframes count-up {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .balance-animate {
+      animation: count-up 1s ease-out;
+    }
+
+    .gradient-border {
+      position: relative;
+      background: #121212;
+    }
+
+    .gradient-border::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(0, 112, 255, 0.5), rgba(255, 255, 255, 0.1));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+
+    .sidebar-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 40;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .sidebar-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .mobile-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 280px;
+      z-index: 50;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+
+    .mobile-sidebar.active {
+      transform: translateX(0);
+    }
+
+    .hamburger-line {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background-color: currentColor;
+      transition: all 0.3s ease;
+    }
+
+    .hamburger-line:not(:last-child) {
+      margin-bottom: 5px;
+    }
+
+    .hamburger.active .hamburger-line:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+
+    .hamburger.active .hamburger-line:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger.active .hamburger-line:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Mejoras adicionales */
+    .transition-smooth {
+      transition: all 0.3s ease;
+    }
+
+    .hover-lift:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 112, 255, 0.2);
+    }
+
+    .smooth-scroll {
+      scroll-behavior: smooth;
+    }
+
+    a {
+      transition: all 0.3s ease;
+    }
+
+    .nav-item.active {
+      background-color: rgba(0, 112, 255, 0.1);
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-black text-white overflow-auto smooth-scroll">
+  <div id="root" class="w-full h-full"></div>
+  <script>
+    const defaultConfig = {
+      background_color: '#050505',
+      surface_color: '#121212',
+      accent_color: '#0070FF',
+      text_color: '#FFFFFF',
+      secondary_text_color: '#9CA3AF',
+      bank_name: 'BankUp',
+      user_name: 'A11Y SV',
+      performance_title: 'Asset Performance',
+      crypto_title: 'Crypto Holdings',
+      savings_title: 'Private Funds',
+      footer_text: '© 2024 BankUp Global. Architecture by A11YSV'
+    };
+
+    let config = { ...defaultConfig };
+
+    // State management
+    let balance = 945809.00;
+    let chartData = [65, 78, 45, 89, 92, 70, 85, 60];
+    let isFluctuating = false;
+    let isSidebarOpen = false;
+    let currentPage = 'dashboard';
+
+    function setActivePage(page) {
+      currentPage = page;
+      // Remover clase active de todos los nav items
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      // Agregar clase active al elemento actual
+      document.querySelectorAll(`a[data-page="${page}"]`).forEach(item => {
+        item.classList.add('active');
+      });
+    }
+
+    function toggleSidebar() {
+      isSidebarOpen = !isSidebarOpen;
+      const sidebar = document.getElementById('mobile-sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      const hamburger = document.getElementById('hamburger-btn');
+      
+      if (isSidebarOpen) {
+        sidebar.classList.add('active');
+        backdrop.classList.add('active');
+        hamburger.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      } else {
+        sidebar.classList.remove('active');
+        backdrop.classList.remove('active');
+        hamburger.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    function closeSidebar() {
+      if (isSidebarOpen) {
+        toggleSidebar();
+      }
+    }
+
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2
+      }).format(amount);
+    }
+
+    function animateValue(element, start, end, duration) {
+      const range = end - start;
+      const increment = range / (duration / 16);
+      let current = start;
+      
+      const timer = setInterval(() => {
+        current += increment;
+        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+          current = end;
+          clearInterval(timer);
+        }
+        element.textContent = formatCurrency(current);
+      }, 16);
+    }
+
+    function startBalanceFluctuation() {
+      if (isFluctuating) return;
+      isFluctuating = true;
+
+      setInterval(() => {
+        const balanceElement = document.getElementById('main-balance');
+        const balanceMobileElement = document.getElementById('main-balance-mobile');
+        if (balanceElement) {
+          const oldBalance = balance;
+          const fluctuation = (Math.random() - 0.5) * 20;
+          balance += fluctuation;
+          animateValue(balanceElement, oldBalance, balance, 2000);
+          if (balanceMobileElement) {
+            animateValue(balanceMobileElement, oldBalance, balance, 2000);
+          }
+        }
+      }, 3000);
+    }
+
+    function randomizeChartData() {
+      chartData = chartData.map(() => Math.floor(Math.random() * 60) + 40);
+      renderChart();
+    }
+
+    function renderChart() {
+      const chartContainer = document.getElementById('chart-bars');
+      if (!chartContainer) return;
+
+      chartContainer.innerHTML = '';
+      chartData.forEach((value, index) => {
+        const bar = document.createElement('div');
+        bar.className = 'chart-bar flex flex-col items-center gap-2';
+        bar.style.animationDelay = `${index * 0.1}s`;
+        
+        bar.innerHTML = `
+          <div class="relative w-12 rounded-t hover-lift cursor-pointer" style="height: ${value}px; background: linear-gradient(to top, ${config.accent_color || defaultConfig.accent_color}, rgba(0, 112, 255, 0.3));">
+            <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-medium" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">${value}%</div>
+          </div>
+          <span class="text-xs" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">Q${index + 1}</span>
+        `;
+        chartContainer.appendChild(bar);
+      });
+    }
+
+    async function onConfigChange(newConfig) {
+      config = { ...config, ...newConfig };
+      
+      // Update document background
+      document.body.style.backgroundColor = config.background_color || defaultConfig.background_color;
+      
+      // Update text content
+      const bankNameEl = document.getElementById('bank-name');
+      if (bankNameEl) bankNameEl.textContent = config.bank_name || defaultConfig.bank_name;
+      
+      const userNameEl = document.getElementById('user-name');
+      if (userNameEl) userNameEl.textContent = config.user_name || defaultConfig.user_name;
+      
+      const performanceTitleEl = document.getElementById('performance-title');
+      if (performanceTitleEl) performanceTitleEl.textContent = config.performance_title || defaultConfig.performance_title;
+      
+      const cryptoTitleEl = document.getElementById('crypto-title');
+      if (cryptoTitleEl) cryptoTitleEl.textContent = config.crypto_title || defaultConfig.crypto_title;
+      
+      const savingsTitleEl = document.getElementById('savings-title');
+      if (savingsTitleEl) savingsTitleEl.textContent = config.savings_title || defaultConfig.savings_title;
+      
+      const footerTextEl = document.getElementById('footer-text');
+      if (footerTextEl) footerTextEl.textContent = config.footer_text || defaultConfig.footer_text;
+      
+      // Update colors
+      const surfaceElements = document.querySelectorAll('.surface-bg');
+      surfaceElements.forEach(el => {
+        el.style.backgroundColor = config.surface_color || defaultConfig.surface_color;
+      });
+      
+      const textElements = document.querySelectorAll('.primary-text');
+      textElements.forEach(el => {
+        el.style.color = config.text_color || defaultConfig.text_color;
+      });
+      
+      const secondaryTextElements = document.querySelectorAll('.secondary-text');
+      secondaryTextElements.forEach(el => {
+        el.style.color = config.secondary_text_color || defaultConfig.secondary_text_color;
+      });
+      
+      const accentElements = document.querySelectorAll('.accent-color');
+      accentElements.forEach(el => {
+        el.style.color = config.accent_color || defaultConfig.accent_color;
+      });
+      
+      const accentBgElements = document.querySelectorAll('.accent-bg');
+      accentBgElements.forEach(el => {
+        el.style.backgroundColor = config.accent_color || defaultConfig.accent_color;
+      });
+
+      // Re-render chart with new colors
+      renderChart();
+    }
+
+    function initApp() {
+      const root = document.getElementById('root');
+      
+      root.innerHTML = `
+        <!-- Backdrop for mobile sidebar -->
+        <div id="sidebar-backdrop" class="sidebar-backdrop md:hidden" onclick="closeSidebar()"></div>
+
+        <div class="w-full flex flex-col md:flex-row h-full" style="background-color: ${config.background_color || defaultConfig.background_color}">
+          <!-- Sidebar - Desktop -->
+          <aside class="surface-bg hidden md:flex w-72 flex-col p-6 border-r" style="background-color: ${config.surface_color || defaultConfig.surface_color}; border-color: rgba(255, 255, 255, 0.1)">
+            <!-- Logo -->
+            <div class="mb-8">
+              <h1 id="bank-name" class="primary-text text-2xl font-semibold tracking-tight" style="color: ${config.text_color || defaultConfig.text_color}">${config.bank_name || defaultConfig.bank_name}</h1>
+            </div>
+
+            <!-- Balance Section -->
+            <div class="surface-bg rounded-xl p-5 mb-8 gradient-border transition-smooth hover-lift" style="background-color: ${config.surface_color || defaultConfig.surface_color}">
+              <p class="secondary-text text-sm mb-2" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">Total Balance</p>
+              <h2 id="main-balance" class="primary-text text-3xl font-bold balance-animate" style="color: ${config.text_color || defaultConfig.text_color}">${formatCurrency(balance)}</h2>
+              <p class="accent-color text-sm mt-2" style="color: ${config.accent_color || defaultConfig.accent_color}">+2.4% this month</p>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 space-y-2">
+              <a href="dashboard.html" data-page="dashboard" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5 accent-color" style="color: ${config.accent_color || defaultConfig.accent_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span class="primary-text font-medium" style="color: ${config.text_color || defaultConfig.text_color}">Dashboard</span>
+              </a>
+              
+              <a href="accounts.html" data-page="accounts" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5 secondary-text" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <span class="secondary-text font-medium" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">Accounts</span>
+              </a>
+              
+              <a href="analytics.html" data-page="analytics" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5 secondary-text" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span class="secondary-text font-medium" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">Analytics</span>
+              </a>
+              
+              <a href="transfers.html" data-page="transfers" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5 secondary-text" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="secondary-text font-medium" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">Transfers</span>
+              </a>
+            </nav>
+
+            <!-- User Profile -->
+            <div class="surface-bg flex items-center gap-3 p-3 rounded-lg mt-6 transition-smooth hover-lift" style="background-color: ${config.surface_color || defaultConfig.surface_color}; border: 1px solid rgba(255, 255, 255, 0.1)">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-white" style="background: linear-gradient(135deg, ${config.accent_color || defaultConfig.accent_color}, #8B5CF6)">
+                AS
+              </div>
+              <div class="flex-1">
+                <p id="user-name" class="primary-text text-sm font-medium" style="color: ${config.text_color || defaultConfig.text_color}">${config.user_name || defaultConfig.user_name}</p>
+                <p class="secondary-text text-xs" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">Premium Account</p>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Sidebar - Mobile (deslizante) -->
+          <aside id="mobile-sidebar" class="mobile-sidebar md:hidden surface-bg flex flex-col p-6 overflow-y-auto" style="background-color: ${config.surface_color || defaultConfig.surface_color}">
+            <!-- Close button -->
+            <button onclick="closeSidebar()" class="self-end mb-4 p-2 rounded-lg hover:bg-white/5 transition-colors">
+              <svg class="w-6 h-6 primary-text" style="color: ${config.text_color || defaultConfig.text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <!-- Logo -->
+            <div class="mb-8">
+              <h1 class="primary-text text-2xl font-semibold tracking-tight" style="color: ${config.text_color || defaultConfig.text_color}">${config.bank_name || defaultConfig.bank_name}</h1>
+            </div>
+
+            <!-- Balance Section -->
+            <div class="surface-bg rounded-xl p-5 mb-8 gradient-border transition-smooth" style="background-color: ${config.surface_color || defaultConfig.surface_color}">
+              <p class="secondary-text text-sm mb-2" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">Total Balance</p>
+              <h2 id="main-balance-mobile" class="primary-text text-3xl font-bold balance-animate" style="color: ${config.text_color || defaultConfig.text_color}">${formatCurrency(balance)}</h2>
+              <p class="accent-color text-sm mt-2" style="color: ${config.accent_color || defaultConfig.accent_color}">+2.4% this month</p>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 space-y-2">
+              <a href="dashboard.html" data-page="dashboard" onclick="closeSidebar()" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5 accent-color" style="color: ${config.accent_color || defaultConfig.accent_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span class="primary-text font-medium" style="color: ${config.text_color || defaultConfig.text_color}">Dashboard</span>
+              </a>
+              
+              <a href="accounts.html" data-page="accounts" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5 secondary-text" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <span class="secondary-text font-medium" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">Accounts</span>
+              </a>
+              
+              <a href="analytics.html" data-page="analytics" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5 secondary-text" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span class="secondary-text font-medium" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">Analytics</span>
+              </a>
+              
+              <a href="transfers.html" data-page="transfers" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5 secondary-text" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="secondary-text font-medium" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">Transfers</span>
+              </a>
+            </nav>
+
+            <!-- User Profile -->
+            <div class="surface-bg flex items-center gap-3 p-3 rounded-lg mt-6 transition-smooth" style="background-color: ${config.surface_color || defaultConfig.surface_color}; border: 1px solid rgba(255, 255, 255, 0.1)">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-white" style="background: linear-gradient(135deg, ${config.accent_color || defaultConfig.accent_color}, #8B5CF6)">
+                AS
+              </div>
+              <div class="flex-1">
+                <p class="primary-text text-sm font-medium" style="color: ${config.text_color || defaultConfig.text_color}">${config.user_name || defaultConfig.user_name}</p>
+                <p class="secondary-text text-xs" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">Premium Account</p>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Main Content -->
+          <main class="flex-1 flex flex-col h-full overflow-auto">
+            <!-- Header -->
+            <header class="surface-bg border-b p-4 md:p-6 flex items-center justify-between gap-4 sticky top-0 z-30" style="background-color: ${config.surface_color || defaultConfig.surface_color}; border-color: rgba(255, 255, 255, 0.1)">
+              <!-- Hamburger Menu (solo móvil) -->
+              <button id="hamburger-btn" onclick="toggleSidebar()" class="hamburger md:hidden p-2 rounded-lg hover:bg-white/5 transition-colors primary-text" style="color: ${config.text_color || defaultConfig.text_color}">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+              </button>
+
+              <!-- Search bar -->
+              <div class="flex-1 max-w-xl">
+                <div class="surface-bg flex items-center gap-3 px-3 md:px-4 py-2 md:py-3 rounded-lg transition-smooth" style="background-color: ${config.surface_color || defaultConfig.surface_color}; border: 1px solid rgba(255, 255, 255, 0.1)">
+                  <svg class="w-4 h-4 md:w-5 md:h-5 secondary-text flex-shrink-0" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input type="text" placeholder="Search..." class="bg-transparent flex-1 outline-none primary-text text-sm md:text-base" style="color: ${config.text_color || defaultConfig.text_color}" />
+                  <kbd class="hidden md:block px-2 py-1 text-xs rounded secondary-text" style="background-color: rgba(255, 255, 255, 0.05); color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">⌘K</kbd>
+                </div>
+              </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="flex-1 p-4 md:p-6 overflow-auto">
+              <!-- Chart Section -->
+              <div class="surface-bg glass-morphism rounded-2xl p-4 md:p-6 mb-4 md:mb-6 hover-lift transition-smooth" style="background-color: ${config.surface_color || defaultConfig.surface_color}">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                  <h2 id="performance-title" class="primary-text text-lg md:text-xl font-semibold" style="color: ${config.text_color || defaultConfig.text_color}">${config.performance_title || defaultConfig.performance_title}</h2>
+                  <button onclick="randomizeChartData()" class="accent-bg px-4 py-2 rounded-lg text-white text-sm font-medium transition-all hover:opacity-80 glow-effect w-full sm:w-auto" style="background-color: ${config.accent_color || defaultConfig.accent_color}">
+                    Refresh Data
+                  </button>
+                </div>
+                
+                <div class="overflow-x-auto -mx-2 px-2">
+                  <div id="chart-bars" class="flex items-end justify-between gap-2 md:gap-4 h-48 md:h-64 min-w-max"></div>
+                </div>
+              </div>
+
+              <!-- Widgets Grid -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                <!-- Crypto Widget -->
+                <div class="surface-bg glossy-card rounded-2xl p-4 md:p-6 hover-lift transition-smooth" style="background-color: ${config.surface_color || defaultConfig.surface_color}; border: 1px solid rgba(255, 255, 255, 0.1)">
+                  <h3 id="crypto-title" class="primary-text text-base md:text-lg font-semibold mb-4" style="color: ${config.text_color || defaultConfig.text_color}">${config.crypto_title || defaultConfig.crypto_title}</h3>
+                  
+                  <div class="space-y-3 md:space-y-4">
+                    <div class="flex items-center justify-between p-3 md:p-4 rounded-lg transition-smooth hover:bg-white/5" style="background-color: rgba(255, 255, 255, 0.03)">
+                      <div class="flex items-center gap-2 md:gap-3">
+                        <div class="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #F7931A">
+                          <span class="text-white font-bold text-xs md:text-sm">₿</span>
+                        </div>
+                        <div>
+                          <p class="primary-text font-medium text-sm md:text-base" style="color: ${config.text_color || defaultConfig.text_color}">Bitcoin</p>
+                          <p class="secondary-text text-xs md:text-sm" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">2.45 BTC</p>
+                        </div>
+                      </div>
+                      <div class="text-right">
+                        <p class="primary-text font-semibold text-sm md:text-base" style="color: ${config.text_color || defaultConfig.text_color}">$127,450</p>
+                        <p class="text-xs md:text-sm text-green-400">+5.2%</p>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center justify-between p-3 md:p-4 rounded-lg transition-smooth hover:bg-white/5" style="background-color: rgba(255, 255, 255, 0.03)">
+                      <div class="flex items-center gap-2 md:gap-3">
+                        <div class="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #627EEA">
+                          <span class="text-white font-bold text-xs md:text-sm">Ξ</span>
+                        </div>
+                        <div>
+                          <p class="primary-text font-medium text-sm md:text-base" style="color: ${config.text_color || defaultConfig.text_color}">Ethereum</p>
+                          <p class="secondary-text text-xs md:text-sm" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">15.8 ETH</p>
+                        </div>
+                      </div>
+                      <div class="text-right">
+                        <p class="primary-text font-semibold text-sm md:text-base" style="color: ${config.text_color || defaultConfig.text_color}">$52,890</p>
+                        <p class="text-xs md:text-sm text-green-400">+3.8%</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Savings Widget -->
+                <div class="surface-bg glossy-card rounded-2xl p-4 md:p-6 hover-lift transition-smooth" style="background-color: ${config.surface_color || defaultConfig.surface_color}; border: 1px solid rgba(255, 255, 255, 0.1)">
+                  <h3 id="savings-title" class="primary-text text-base md:text-lg font-semibold mb-4" style="color: ${config.text_color || defaultConfig.text_color}">${config.savings_title || defaultConfig.savings_title}</h3>
+                  
+                  <div class="space-y-3 md:space-y-4">
+                    <div class="p-3 md:p-4 rounded-lg transition-smooth hover-lift" style="background: linear-gradient(135deg, rgba(0, 112, 255, 0.1), rgba(139, 92, 246, 0.1))">
+                      <div class="flex items-center justify-between mb-2">
+                        <p class="primary-text font-medium text-sm md:text-base" style="color: ${config.text_color || defaultConfig.text_color}">Elite Growth Fund</p>
+                        <span class="accent-color text-xs md:text-sm font-semibold" style="color: ${config.accent_color || defaultConfig.accent_color}">8.5% APY</span>
+                      </div>
+                      <p class="primary-text text-xl md:text-2xl font-bold mb-1" style="color: ${config.text_color || defaultConfig.text_color}">$5,240,000</p>
+                      <p class="secondary-text text-xs md:text-sm" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">Maturity: Dec 2025</p>
+                    </div>
+
+                    <div class="p-3 md:p-4 rounded-lg transition-smooth hover-lift" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1))">
+                      <div class="flex items-center justify-between mb-2">
+                        <p class="primary-text font-medium text-sm md:text-base" style="color: ${config.text_color || defaultConfig.text_color}">Platinum Reserve</p>
+                        <span class="accent-color text-xs md:text-sm font-semibold" style="color: ${config.accent_color || defaultConfig.accent_color}">6.2% APY</span>
+                      </div>
+                      <p class="primary-text text-xl md:text-2xl font-bold mb-1" style="color: ${config.text_color || defaultConfig.text_color}">$3,180,000</p>
+                      <p class="secondary-text text-xs md:text-sm" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">Maturity: Jun 2026</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="surface-bg border-t p-3 md:p-4 text-center" style="background-color: ${config.surface_color || defaultConfig.surface_color}; border-color: rgba(255, 255, 255, 0.1)">
+              <p id="footer-text" class="secondary-text text-xs md:text-sm" style="color: ${config.secondary_text_color || defaultConfig.secondary_text_color}">${config.footer_text || defaultConfig.footer_text}</p>
+            </footer>
+          </main>
+        </div>
+      `;
+
+      // Initialize chart
+      renderChart();
+      
+      // Start balance fluctuation
+      startBalanceFluctuation();
+    }
+
+    // Initialize Element SDK
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.background_color || defaultConfig.background_color,
+              set: (value) => {
+                config.background_color = value;
+                window.elementSdk.setConfig({ background_color: value });
+              }
+            },
+            {
+              get: () => config.surface_color || defaultConfig.surface_color,
+              set: (value) => {
+                config.surface_color = value;
+                window.elementSdk.setConfig({ surface_color: value });
+              }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => {
+                config.text_color = value;
+                window.elementSdk.setConfig({ text_color: value });
+              }
+            },
+            {
+              get: () => config.accent_color || defaultConfig.accent_color,
+              set: (value) => {
+                config.accent_color = value;
+                window.elementSdk.setConfig({ accent_color: value });
+              }
+            },
+            {
+              get: () => config.secondary_text_color || defaultConfig.secondary_text_color,
+              set: (value) => {
+                config.secondary_text_color = value;
+                window.elementSdk.setConfig({ secondary_text_color: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ['bank_name', config.bank_name || defaultConfig.bank_name],
+          ['user_name', config.user_name || defaultConfig.user_name],
+          ['performance_title', config.performance_title || defaultConfig.performance_title],
+          ['crypto_title', config.crypto_title || defaultConfig.crypto_title],
+          ['savings_title', config.savings_title || defaultConfig.savings_title],
+          ['footer_text', config.footer_text || defaultConfig.footer_text]
+        ])
+      });
+    }
+
+    // Initialize app when DOM is ready
+    initApp();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b1d95eee58b1476',t:'MTc2NjM4NTE4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
