@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="es" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BankUp - Financial Analytics</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body { box-sizing: border-box; }
+    * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: -0.01em; }
+
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(0, 112, 255, 0.3); }
+      50% { box-shadow: 0 0 30px rgba(0, 112, 255, 0.5); }
+    }
+    .glow-effect { animation: glow-pulse 3s ease-in-out infinite; }
+    .glass-morphism { background: rgba(18, 18, 18, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    
+    .glossy-card { position: relative; overflow: hidden; }
+    .glossy-card::before {
+      content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.5s;
+    }
+    .glossy-card:hover::before { left: 100%; }
+
+    @keyframes bar-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+    .chart-bar { transform-origin: bottom; animation: bar-grow 0.8s ease-out forwards; }
+
+    .nav-item { position: relative; transition: all 0.3s ease; }
+    .nav-item::before {
+      content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 3px; height: 0; background: #0070FF; transition: height 0.3s ease;
+      box-shadow: 0 0 10px rgba(0, 112, 255, 0.8);
+    }
+    .nav-item:hover::before, .nav-item.active::before { height: 60%; }
+
+    .gradient-border { position: relative; background: #121212; }
+    .gradient-border::before {
+      content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+      background: linear-gradient(135deg, rgba(0, 112, 255, 0.5), rgba(255, 255, 255, 0.1));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+    }
+
+    .sidebar-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); z-index: 40; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
+    .sidebar-backdrop.active { opacity: 1; pointer-events: auto; }
+    .mobile-sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; z-index: 50; transform: translateX(-100%); transition: transform 0.3s ease; }
+    .mobile-sidebar.active { transform: translateX(0); }
+    .hamburger-line { display: block; width: 24px; height: 2px; background-color: currentColor; transition: all 0.3s ease; }
+    .hamburger-line:not(:last-child) { margin-bottom: 5px; }
+    .hamburger.active .hamburger-line:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.active .hamburger-line:nth-child(2) { opacity: 0; }
+    .hamburger.active .hamburger-line:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  </style>
+ </head>
+ <body class="h-full bg-black text-white overflow-auto">
+  <div id="root" class="w-full h-full"></div>
+  <script>
+    const defaultConfig = {
+      background_color: '#050505',
+      surface_color: '#121212',
+      accent_color: '#0070FF',
+      text_color: '#FFFFFF',
+      secondary_text_color: '#9CA3AF',
+      bank_name: 'BankUp',
+      user_name: 'A11Y SV',
+      analytics_title: 'Spending Intelligence',
+      breakdown_title: 'Expense Categories',
+      monthly_target: 'Savings Goal',
+      footer_text: '© 2024 BankUp Global. Analytics Engine v2.4'
+    };
+
+    let config = { ...defaultConfig };
+    let isSidebarOpen = false;
+    let analyticsData = [45, 82, 60, 95, 70, 88, 55, 75, 90, 65, 80, 100]; // 12 meses
+
+    function toggleSidebar() {
+      isSidebarOpen = !isSidebarOpen;
+      const sidebar = document.getElementById('mobile-sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      const hamburger = document.getElementById('hamburger-btn');
+      
+      if (isSidebarOpen) {
+        sidebar.classList.add('active');
+        backdrop.classList.add('active');
+        hamburger.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      } else {
+        sidebar.classList.remove('active');
+        backdrop.classList.remove('active');
+        hamburger.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    function closeSidebar() { if (isSidebarOpen) toggleSidebar(); }
+
+    function renderAnalyticsChart() {
+      const chartContainer = document.getElementById('analytics-bars');
+      if (!chartContainer) return;
+
+      chartContainer.innerHTML = '';
+      const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+      
+      analyticsData.forEach((value, index) => {
+        const bar = document.createElement('div');
+        bar.className = 'chart-bar flex flex-col items-center gap-2 flex-1';
+        bar.style.animationDelay = `${index * 0.05}s`;
+        
+        bar.innerHTML = `
+          <div class="relative w-full max-w-[30px] rounded-t-sm" style="height: ${value * 2}px; background: linear-gradient(to top, ${config.accent_color}, rgba(0, 112, 255, 0.2));">
+            <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px]" style="color: ${config.secondary_text_color}">${value}%</div>
+          </div>
+          <span class="text-[10px] uppercase font-bold" style="color: ${config.secondary_text_color}">${months[index]}</span>
+        `;
+        chartContainer.appendChild(bar);
+      });
+    }
+
+    function initApp() {
+      const root = document.getElementById('root');
+      root.innerHTML = `
+        <div id="sidebar-backdrop" class="sidebar-backdrop md:hidden" onclick="closeSidebar()"></div>
+
+        <div class="w-full flex flex-col md:flex-row h-full" style="background-color: ${config.background_color}">
+          <aside class="surface-bg hidden md:flex w-72 flex-col p-6 border-r" style="background-color: ${config.surface_color}; border-color: rgba(255, 255, 255, 0.1)">
+            <div class="mb-10">
+              <h1 class="primary-text text-2xl font-semibold tracking-tighter" style="color: ${config.text_color}">${config.bank_name}</h1>
+            </div>
+
+            <nav class="flex-1 space-y-2">
+              <a href="#" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5">
+                <svg class="w-5 h-5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                <span class="secondary-text font-medium" style="color: ${config.secondary_text_color}">Dashboard</span>
+              </a>
+              <a href="#" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-lg bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.accent_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                <span class="primary-text font-medium" style="color: ${config.text_color}">Analytics</span>
+              </a>
+              <a href="#" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5">
+                <svg class="w-5 h-5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span class="secondary-text font-medium" style="color: ${config.secondary_text_color}">Transfers</span>
+              </a>
+            </nav>
+
+            <div class="mt-auto pt-6 border-t border-white/10">
+               <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs" style="background: linear-gradient(135deg, ${config.accent_color}, #8B5CF6)">AS</div>
+                  <div>
+                    <p class="text-sm font-medium" style="color: ${config.text_color}">${config.user_name}</p>
+                    <p class="text-[10px] opacity-50">ANALYTICS PRO</p>
+                  </div>
+               </div>
+            </div>
+          </aside>
+
+          <aside id="mobile-sidebar" class="mobile-sidebar md:hidden surface-bg flex flex-col p-6" style="background-color: ${config.surface_color}">
+             <button onclick="closeSidebar()" class="self-end mb-8 p-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+             <nav class="space-y-4">
+                <a href="#" class="flex items-center gap-4 text-lg opacity-50">Dashboard</a>
+                <a href="#" class="flex items-center gap-4 text-lg font-bold" style="color: ${config.accent_color}">Analytics</a>
+                <a href="#" class="flex items-center gap-4 text-lg opacity-50">Transfers</a>
+             </nav>
+          </aside>
+
+          <main class="flex-1 flex flex-col h-full overflow-hidden">
+            <header class="p-4 md:p-6 flex items-center justify-between border-b border-white/10">
+              <button id="hamburger-btn" onclick="toggleSidebar()" class="hamburger md:hidden p-2">
+                <span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span>
+              </button>
+              <h2 class="text-lg font-semibold tracking-tight" style="color: ${config.text_color}">Financial Insights</h2>
+              <div class="flex items-center gap-4">
+                <span class="hidden md:block text-xs opacity-50">Last update: 2m ago</span>
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                </div>
+              </div>
+            </header>
+
+            <div class="flex-1 p-4 md:p-8 overflow-y-auto">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="glass-morphism rounded-2xl p-5">
+                  <p class="text-xs mb-1 opacity-60">Avg. Monthly Spending</p>
+                  <h3 class="text-2xl font-bold">$12,450.00</h3>
+                  <p class="text-[10px] text-green-400 mt-2">↓ 12% vs last month</p>
+                </div>
+                <div class="glass-morphism rounded-2xl p-5">
+                  <p class="text-xs mb-1 opacity-60">Investment Yield</p>
+                  <h3 class="text-2xl font-bold">18.4%</h3>
+                  <p class="text-[10px] text-blue-400 mt-2">↑ 2.1% outperformance</p>
+                </div>
+                <div class="glass-morphism rounded-2xl p-5 border-l-4" style="border-left-color: ${config.accent_color}">
+                  <p class="text-xs mb-1 opacity-60">Wealth Projection</p>
+                  <h3 class="text-2xl font-bold">$2.4M</h3>
+                  <p class="text-[10px] opacity-40 mt-2">Estimated by age 55</p>
+                </div>
+              </div>
+
+              <div class="glass-morphism rounded-2xl p-6 mb-8">
+                <div class="flex items-center justify-between mb-10">
+                  <div>
+                    <h3 class="text-xl font-bold" style="color: ${config.text_color}">${config.analytics_title}</h3>
+                    <p class="text-sm opacity-50">Yearly cash flow distribution</p>
+                  </div>
+                  <select class="bg-white/5 border border-white/10 rounded-lg px-3 py-1 text-xs outline-none">
+                    <option>Year 2024</option>
+                    <option>Year 2023</option>
+                  </select>
+                </div>
+                <div id="analytics-bars" class="flex items-end justify-between gap-2 h-64"></div>
+              </div>
+
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="surface-bg rounded-2xl p-6 border border-white/10" style="background-color: ${config.surface_color}">
+                  <h3 class="font-bold mb-6">${config.breakdown_title}</h3>
+                  <div class="space-y-6">
+                    <div>
+                      <div class="flex justify-between text-xs mb-2"><span>Luxury & Travel</span><span>45%</span></div>
+                      <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-500" style="width: 45%"></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="flex justify-between text-xs mb-2"><span>Tech & Setup</span><span>30%</span></div>
+                      <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div class="h-full bg-purple-500" style="width: 30%"></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="flex justify-between text-xs mb-2"><span>Real Estate</span><span>25%</span></div>
+                      <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div class="h-full bg-emerald-500" style="width: 25%"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="surface-bg rounded-2xl p-6 border border-white/10 glossy-card" style="background-color: ${config.surface_color}">
+                  <h3 class="font-bold mb-4">${config.monthly_target}</h3>
+                  <div class="flex items-center justify-center py-4">
+                    <div class="relative w-32 h-32 rounded-full border-8 border-white/5 flex items-center justify-center">
+                        <svg class="absolute inset-0 w-full h-full -rotate-90">
+                            <circle cx="64" cy="64" r="56" fill="transparent" stroke="${config.accent_color}" stroke-width="8" stroke-dasharray="351" stroke-dashoffset="100" />
+                        </svg>
+                        <span class="text-xl font-bold">72%</span>
+                    </div>
+                  </div>
+                  <p class="text-center text-sm opacity-60 mt-2">Almost there! You saved $4,200 more than last month.</p>
+                </div>
+              </div>
+            </div>
+
+            <footer class="p-4 border-t border-white/10 text-center">
+              <p class="text-[10px] opacity-40">${config.footer_text}</p>
+            </footer>
+          </main>
+        </div>
+      `;
+      renderAnalyticsChart();
+    }
+
+    // SDK Integration
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: (newConfig) => {
+          config = { ...config, ...newConfig };
+          initApp();
+        },
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            { get: () => config.background_color, set: (v) => window.elementSdk.setConfig({ background_color: v }) },
+            { get: () => config.surface_color, set: (v) => window.elementSdk.setConfig({ surface_color: v }) },
+            { get: () => config.accent_color, set: (v) => window.elementSdk.setConfig({ accent_color: v }) }
+          ]
+        })
+      });
+    }
+
+    initApp();
+  </script>
+ </body>
+</html>
