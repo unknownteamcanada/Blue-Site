@@ -1,0 +1,1180 @@
+<!doctype html>
+<html lang="es" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accounts - BankUp Premium Neobank</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { box-sizing: border-box; }
+    * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      letter-spacing: -0.01em;
+    }
+
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(0, 112, 255, 0.3); }
+      50% { box-shadow: 0 0 30px rgba(0, 112, 255, 0.5); }
+    }
+
+    .glow-effect {
+      animation: glow-pulse 3s ease-in-out infinite;
+    }
+
+    .glass-morphism {
+      background: rgba(18, 18, 18, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .glossy-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glossy-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.5s;
+    }
+
+    .glossy-card:hover::before {
+      left: 100%;
+    }
+
+    .nav-item {
+      position: relative;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .nav-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 0;
+      background: #0070FF;
+      transition: height 0.3s ease;
+      box-shadow: 0 0 10px rgba(0, 112, 255, 0.8);
+    }
+
+    .nav-item:hover::before,
+    .nav-item.active::before {
+      height: 60%;
+    }
+
+    .gradient-border {
+      position: relative;
+      background: #121212;
+    }
+
+    .gradient-border::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(0, 112, 255, 0.5), rgba(255, 255, 255, 0.1));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+
+    .sidebar-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 40;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .sidebar-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .mobile-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 280px;
+      z-index: 50;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+
+    .mobile-sidebar.active {
+      transform: translateX(0);
+    }
+
+    .hamburger-line {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background-color: currentColor;
+      transition: all 0.3s ease;
+    }
+
+    .hamburger-line:not(:last-child) {
+      margin-bottom: 5px;
+    }
+
+    .hamburger.active .hamburger-line:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+
+    .hamburger.active .hamburger-line:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger.active .hamburger-line:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    .transition-smooth {
+      transition: all 0.3s ease;
+    }
+
+    .hover-lift:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 112, 255, 0.2);
+    }
+
+    .smooth-scroll {
+      scroll-behavior: smooth;
+    }
+
+    .nav-item.active {
+      background-color: rgba(0, 112, 255, 0.1);
+    }
+
+    .nav-section-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.75rem 1rem;
+      margin-top: 0.5rem;
+      opacity: 0.6;
+    }
+
+    .account-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .account-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: -50px;
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle, rgba(0, 112, 255, 0.1), transparent);
+      border-radius: 50%;
+    }
+
+    .account-number {
+      font-family: 'Monaco', 'Courier New', monospace;
+      letter-spacing: 0.1em;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .badge-active {
+      background-color: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+    }
+
+    .badge-pending {
+      background-color: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+    }
+
+    .badge-saving {
+      background-color: rgba(59, 130, 246, 0.2);
+      color: #3b82f6;
+    }
+
+    .badge-investment {
+      background-color: rgba(168, 85, 247, 0.2);
+      color: #a855f7;
+    }
+
+    .tab-button {
+      position: relative;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .tab-button.active {
+      border-bottom-color: #0070FF;
+    }
+
+    .transaction-row {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .transaction-row:last-child {
+      border-bottom: none;
+    }
+
+    .stat-box {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-box::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: -50px;
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle, rgba(0, 112, 255, 0.1), transparent);
+      border-radius: 50%;
+    }
+
+    .card-chip {
+      position: relative;
+      width: 50px;
+      height: 40px;
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.8), rgba(255, 255, 255, 0.3));
+      border-radius: 8px;
+      box-shadow: inset 0 0 10px rgba(255, 215, 0, 0.2);
+    }
+
+    .pulse-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #0070FF;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .scrollbar-thin::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .balance-animate {
+      animation: count-up 1s ease-out;
+    }
+
+    @keyframes count-up {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .account-header-gradient {
+      background: linear-gradient(135deg, #0070FF, #00B4DB);
+    }
+
+    .account-header-gradient-2 {
+      background: linear-gradient(135deg, #00D4FF, #0055FF);
+    }
+
+    .account-header-gradient-3 {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    .account-header-gradient-4 {
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.95);
+      z-index: 101;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+
+    .modal.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .progress-bar {
+      background: linear-gradient(90deg, #0070FF, #00D4FF);
+      border-radius: 9999px;
+      height: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      background: inherit;
+      height: 100%;
+      border-radius: 9999px;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-black text-white overflow-auto smooth-scroll">
+  <div id="root" class="w-full h-full"></div>
+  <script>
+    const defaultConfig = {
+      background_color: '#050505',
+      surface_color: '#121212',
+      accent_color: '#0070FF',
+      text_color: '#FFFFFF',
+      secondary_text_color: '#9CA3AF',
+      bank_name: 'BankUp',
+      user_name: 'Carlos M.',
+      footer_text: '© 2026 BankUp Global. Secure Banking'
+    };
+
+    let config = { ...defaultConfig };
+    let isSidebarOpen = false;
+    let currentTab = 'all-accounts';
+    let selectedAccount = null;
+
+    // Datos de cuentas realistas
+    const accounts = [
+      {
+        id: 1,
+        name: 'Main Checking',
+        type: 'checking',
+        number: '••••••••9847',
+        balance: 12450.75,
+        currency: 'USD',
+        status: 'active',
+        gradient: 'account-header-gradient',
+        iban: 'US12 1234 5678 9012 3456 7890',
+        opened: '2022-05-15',
+        accountHolder: 'Carlos Miguel Rodriguez',
+        transactions: [
+          { date: '2024-01-15', description: 'Salary Deposit', amount: 3500.00, type: 'income' },
+          { date: '2024-01-12', description: 'Netflix Subscription', amount: -14.99, type: 'subscription' },
+          { date: '2024-01-10', description: 'Whole Foods', amount: -87.45, type: 'food' }
+        ]
+      },
+      {
+        id: 2,
+        name: 'Savings Fund',
+        type: 'savings',
+        number: '••••••••5034',
+        balance: 28940.50,
+        currency: 'USD',
+        status: 'active',
+        gradient: 'account-header-gradient-2',
+        iban: 'US12 1234 5678 9012 3456 7891',
+        opened: '2023-03-20',
+        accountHolder: 'Carlos Miguel Rodriguez',
+        apy: 4.5,
+        transactions: [
+          { date: '2024-01-14', description: 'Interest Credit', amount: 45.30, type: 'interest' },
+          { date: '2024-01-05', description: 'Transfer In', amount: 5000.00, type: 'transfer' }
+        ]
+      },
+      {
+        id: 3,
+        name: 'Investment Account',
+        type: 'investment',
+        number: '••••••••2156',
+        balance: 8150.25,
+        currency: 'USD',
+        status: 'active',
+        gradient: 'account-header-gradient-3',
+        iban: 'US12 1234 5678 9012 3456 7892',
+        opened: '2023-08-12',
+        accountHolder: 'Carlos Miguel Rodriguez',
+        performance: 4.2,
+        transactions: [
+          { date: '2024-01-13', description: 'Stock Purchase - AAPL', amount: -2500.00, type: 'investment' },
+          { date: '2024-01-11', description: 'Dividend Payment', amount: 125.50, type: 'income' }
+        ]
+      },
+      {
+        id: 4,
+        name: 'Business Account',
+        type: 'business',
+        number: '••••••••7823',
+        balance: 4320.00,
+        currency: 'USD',
+        status: 'pending',
+        gradient: 'account-header-gradient-4',
+        iban: 'US12 1234 5678 9012 3456 7893',
+        opened: '2024-01-01',
+        accountHolder: 'Carlos M. Business LLC',
+        transactions: [
+          { date: '2024-01-14', description: 'Client Payment', amount: 1500.00, type: 'income' },
+          { date: '2024-01-10', description: 'Office Supplies', amount: -234.67, type: 'expense' }
+        ]
+      }
+    ];
+
+    function toggleSidebar() {
+      isSidebarOpen = !isSidebarOpen;
+      const sidebar = document.getElementById('mobile-sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      const hamburger = document.getElementById('hamburger-btn');
+      
+      if (isSidebarOpen) {
+        sidebar.classList.add('active');
+        backdrop.classList.add('active');
+        hamburger.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      } else {
+        sidebar.classList.remove('active');
+        backdrop.classList.remove('active');
+        hamburger.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    function closeSidebar() {
+      if (isSidebarOpen) {
+        toggleSidebar();
+      }
+    }
+
+    function setActiveTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+      renderAccounts();
+    }
+
+    function selectAccount(accountId) {
+      selectedAccount = accounts.find(a => a.id === accountId);
+      renderAccountDetail();
+    }
+
+    function deselectAccount() {
+      selectedAccount = null;
+      renderAccounts();
+    }
+
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2
+      }).format(amount);
+    }
+
+    function renderAccounts() {
+      const container = document.getElementById('accounts-container');
+      if (!container) return;
+
+      let filteredAccounts = accounts;
+
+      if (currentTab === 'checking') {
+        filteredAccounts = accounts.filter(a => a.type === 'checking');
+      } else if (currentTab === 'savings') {
+        filteredAccounts = accounts.filter(a => a.type === 'savings');
+      } else if (currentTab === 'investment') {
+        filteredAccounts = accounts.filter(a => a.type === 'investment');
+      }
+
+      container.innerHTML = filteredAccounts.map(account => `
+        <div class="cursor-pointer" onclick="selectAccount(${account.id})">
+          <div class="surface-bg account-card rounded-2xl overflow-hidden hover-lift transition-smooth border border-white/10" style="background-color: ${config.surface_color}">
+            <!-- Card Header with Gradient -->
+            <div class="${account.gradient} h-24 md:h-32 p-4 md:p-6 flex items-end justify-between">
+              <div>
+                <p class="text-white/80 text-xs md:text-sm font-medium mb-1">Account</p>
+                <h3 class="text-white font-bold text-lg md:text-2xl">${account.name}</h3>
+              </div>
+              <div class="card-chip"></div>
+            </div>
+
+            <!-- Card Content -->
+            <div class="p-4 md:p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <p class="secondary-text text-xs md:text-sm mb-1" style="color: ${config.secondary_text_color}">Balance</p>
+                  <p class="primary-text text-2xl md:text-3xl font-bold" style="color: ${config.text_color}">${formatCurrency(account.balance)}</p>
+                </div>
+                <div class="text-right">
+                  <span class="badge ${account.status === 'active' ? 'badge-active' : 'badge-pending'}">
+                    ${account.status === 'active' ? 'Active' : 'Pending'}
+                  </span>
+                </div>
+              </div>
+
+              <div class="space-y-2 text-xs md:text-sm">
+                <div class="flex justify-between">
+                  <span class="secondary-text" style="color: ${config.secondary_text_color}">Account Number</span>
+                  <span class="primary-text account-number" style="color: ${config.text_color}">${account.number}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="secondary-text" style="color: ${config.secondary_text_color}">Account Type</span>
+                  <span class="primary-text" style="color: ${config.text_color} text-transform: capitalize">${account.type}</span>
+                </div>
+                ${account.apy ? `
+                  <div class="flex justify-between">
+                    <span class="secondary-text" style="color: ${config.secondary_text_color}">APY</span>
+                    <span class="text-green-400 font-medium">${account.apy}%</span>
+                  </div>
+                ` : ''}
+                ${account.performance ? `
+                  <div class="flex justify-between">
+                    <span class="secondary-text" style="color: ${config.secondary_text_color}">Performance</span>
+                    <span class="text-green-400 font-medium">+${account.performance}%</span>
+                  </div>
+                ` : ''}
+              </div>
+
+              <div class="mt-4 pt-4 border-t border-white/10 flex gap-2">
+                <button class="flex-1 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors hover:bg-white/5" style="color: ${config.accent_color}; border: 1px solid ${config.accent_color}">
+                  View Details
+                </button>
+                <button class="flex-1 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors hover:opacity-80" style="background-color: ${config.accent_color}; color: white">
+                  Transfer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderAccountDetail() {
+      const container = document.getElementById('accounts-container');
+      if (!container || !selectedAccount) return;
+
+      container.innerHTML = `
+        <div>
+          <!-- Back Button -->
+          <button onclick="deselectAccount()" class="mb-6 flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white/5 transition-colors" style="color: ${config.accent_color}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Accounts
+          </button>
+
+          <!-- Account Header -->
+          <div class="surface-bg rounded-2xl overflow-hidden mb-6 hover-lift transition-smooth" style="background-color: ${config.surface_color}">
+            <div class="${selectedAccount.gradient} h-40 p-6 md:p-8 flex items-end justify-between">
+              <div>
+                <p class="text-white/80 text-sm font-medium mb-2">Account Details</p>
+                <h2 class="text-white font-bold text-3xl md:text-4xl">${selectedAccount.name}</h2>
+              </div>
+              <div class="card-chip"></div>
+            </div>
+
+            <div class="p-6 md:p-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div class="stat-box">
+                <p class="secondary-text text-sm mb-2" style="color: ${config.secondary_text_color}">Current Balance</p>
+                <p class="primary-text text-2xl md:text-3xl font-bold" style="color: ${config.text_color}">${formatCurrency(selectedAccount.balance)}</p>
+              </div>
+
+              <div class="stat-box">
+                <p class="secondary-text text-sm mb-2" style="color: ${config.secondary_text_color}">Account Number</p>
+                <p class="primary-text account-number text-sm md:text-base" style="color: ${config.text_color}">${selectedAccount.number}</p>
+              </div>
+
+              <div class="stat-box">
+                <p class="secondary-text text-sm mb-2" style="color: ${config.secondary_text_color}">Account Opened</p>
+                <p class="primary-text text-sm md:text-base" style="color: ${config.text_color}">${new Date(selectedAccount.opened).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+              </div>
+
+              <div class="stat-box">
+                <p class="secondary-text text-sm mb-2" style="color: ${config.secondary_text_color}">Status</p>
+                <span class="badge ${selectedAccount.status === 'active' ? 'badge-active' : 'badge-pending'}">
+                  ${selectedAccount.status === 'active' ? 'Active' : 'Pending'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Account Information -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Account Holder Info -->
+            <div class="surface-bg glossy-card rounded-2xl p-6 hover-lift transition-smooth border border-white/10" style="background-color: ${config.surface_color}">
+              <h3 class="primary-text text-lg font-semibold mb-4" style="color: ${config.text_color}">Account Holder Information</h3>
+              
+              <div class="space-y-4">
+                <div>
+                  <p class="secondary-text text-sm mb-1" style="color: ${config.secondary_text_color}">Account Holder</p>
+                  <p class="primary-text text-base" style="color: ${config.text_color}">${selectedAccount.accountHolder}</p>
+                </div>
+
+                <div>
+                  <p class="secondary-text text-sm mb-1" style="color: ${config.secondary_text_color}">Account Type</p>
+                  <p class="primary-text text-base capitalize" style="color: ${config.text_color}">${selectedAccount.type}</p>
+                </div>
+
+                <div>
+                  <p class="secondary-text text-sm mb-1" style="color: ${config.secondary_text_color}">IBAN</p>
+                  <p class="primary-text text-base account-number" style="color: ${config.text_color}">${selectedAccount.iban}</p>
+                </div>
+
+                <div>
+                  <p class="secondary-text text-sm mb-1" style="color: ${config.secondary_text_color}">Currency</p>
+                  <p class="primary-text text-base" style="color: ${config.text_color}">${selectedAccount.currency}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Account Features -->
+            <div class="surface-bg glossy-card rounded-2xl p-6 hover-lift transition-smooth border border-white/10" style="background-color: ${config.surface_color}">
+              <h3 class="primary-text text-lg font-semibold mb-4" style="color: ${config.text_color}">Account Features</h3>
+              
+              <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 rounded-lg" style="background-color: rgba(255, 255, 255, 0.03)">
+                  <span class="primary-text text-sm" style="color: ${config.text_color}">Online Banking</span>
+                  <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+
+                <div class="flex items-center justify-between p-3 rounded-lg" style="background-color: rgba(255, 255, 255, 0.03)">
+                  <span class="primary-text text-sm" style="color: ${config.text_color}">Mobile Banking</span>
+                  <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+
+                <div class="flex items-center justify-between p-3 rounded-lg" style="background-color: rgba(255, 255, 255, 0.03)">
+                  <span class="primary-text text-sm" style="color: ${config.text_color}">Debit Card</span>
+                  <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+
+                <div class="flex items-center justify-between p-3 rounded-lg" style="background-color: rgba(255, 255, 255, 0.03)">
+                  <span class="primary-text text-sm" style="color: ${config.text_color}">International Transfers</span>
+                  <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+
+                ${selectedAccount.apy ? `
+                  <div class="flex items-center justify-between p-3 rounded-lg" style="background-color: rgba(255, 255, 255, 0.03)">
+                    <span class="primary-text text-sm" style="color: ${config.text_color}">Interest ${selectedAccount.apy}% APY</span>
+                    <span class="pulse-dot"></span>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Transactions -->
+          <div class="surface-bg glossy-card rounded-2xl p-6 hover-lift transition-smooth border border-white/10" style="background-color: ${config.surface_color}">
+            <h3 class="primary-text text-lg font-semibold mb-4" style="color: ${config.text_color}">Recent Transactions</h3>
+            
+            <div class="space-y-0">
+              ${selectedAccount.transactions.map(tx => `
+                <div class="transaction-row p-4 hover:bg-white/5 transition-smooth">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, ${config.accent_color}22, ${config.accent_color}44)">
+                        <svg class="w-5 h-5" style="color: ${config.accent_color}" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <p class="primary-text font-medium text-sm" style="color: ${config.text_color}">${tx.description}</p>
+                        <p class="secondary-text text-xs" style="color: ${config.secondary_text_color}">${tx.date}</p>
+                      </div>
+                    </div>
+                    <p class="primary-text font-semibold text-sm" style="color: ${tx.amount > 0 ? '#22c55e' : '#ef4444'}">${tx.amount > 0 ? '+' : ''}${formatCurrency(Math.abs(tx.amount))}</p>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-white/10">
+              <a href="analytics.html" class="accent-color text-sm font-medium hover:opacity-80 transition-opacity" style="color: ${config.accent_color}">View all transactions →</a>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button class="accent-bg px-6 py-3 rounded-lg text-white font-medium transition-all hover:opacity-80 glow-effect" style="background-color: ${config.accent_color}">
+              Send Money
+            </button>
+            <button class="px-6 py-3 rounded-lg font-medium transition-all hover:bg-white/5" style="border: 1px solid ${config.accent_color}; color: ${config.accent_color}">
+              Request Money
+            </button>
+            <button class="px-6 py-3 rounded-lg font-medium transition-all hover:bg-white/5" style="border: 1px solid rgba(255, 255, 255, 0.2); color: ${config.secondary_text_color}">
+              Account Settings
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function initApp() {
+      const root = document.getElementById('root');
+      
+      root.innerHTML = `
+        <div id="sidebar-backdrop" class="sidebar-backdrop md:hidden" onclick="closeSidebar()"></div>
+
+        <div class="w-full flex flex-col md:flex-row h-full" style="background-color: ${config.background_color}">
+          <!-- Sidebar - Desktop -->
+          <aside class="surface-bg hidden md:flex w-72 flex-col p-6 border-r overflow-y-auto scrollbar-thin" style="background-color: ${config.surface_color}; border-color: rgba(255, 255, 255, 0.1)">
+            <!-- Logo -->
+            <div class="mb-8">
+              <h1 id="bank-name" class="primary-text text-2xl font-semibold tracking-tight" style="color: ${config.text_color}">${config.bank_name}</h1>
+            </div>
+
+            <!-- Balance Section -->
+            <div class="surface-bg rounded-xl p-5 mb-8 gradient-border transition-smooth hover-lift" style="background-color: ${config.surface_color}">
+              <p class="secondary-text text-sm mb-2" style="color: ${config.secondary_text_color}">Total Balance</p>
+              <h2 id="main-balance" class="primary-text text-3xl font-bold balance-animate" style="color: ${config.text_color}">${formatCurrency(accounts.reduce((sum, acc) => sum + acc.balance, 0))}</h2>
+              <p class="accent-color text-sm mt-2" style="color: ${config.accent_color}">+2.4% this month</p>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 space-y-1 mb-8">
+              <p class="nav-section-title" style="color: ${config.secondary_text_color}">Main</p>
+              
+              <a href="dashboard.html" data-page="dashboard" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Dashboard</span>
+              </a>
+              
+              <a href="accounts.html" data-page="accounts" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.accent_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <span class="primary-text font-medium text-sm" style="color: ${config.text_color}">Accounts</span>
+              </a>
+              
+              <a href="analytics.html" data-page="analytics" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Analytics</span>
+              </a>
+              
+              <a href="transfers.html" data-page="transfers" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Transfers</span>
+              </a>
+            </nav>
+
+            <!-- Investments -->
+            <nav class="flex-1 space-y-1 mb-8">
+              <p class="nav-section-title" style="color: ${config.secondary_text_color}">Investments</p>
+              
+              <a href="crypto.html" data-page="crypto" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Crypto</span>
+              </a>
+              
+              <a href="stocks.html" data-page="stocks" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8L5.5 19.5" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Stocks</span>
+              </a>
+
+              <a href="funds.html" data-page="funds" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Funds</span>
+              </a>
+            </nav>
+
+            <!-- Services -->
+            <nav class="flex-1 space-y-1 mb-8">
+              <p class="nav-section-title" style="color: ${config.secondary_text_color}">Services</p>
+              
+              <a href="savings.html" data-page="savings" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Savings</span>
+              </a>
+
+              <a href="cards.html" data-page="cards" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Cards</span>
+              </a>
+
+              <a href="loans.html" data-page="loans" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Loans</span>
+              </a>
+
+              <a href="insurance.html" data-page="insurance" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m7.773-4.227A10 10 0 1112 2.236a10 10 0 017.773 18.764z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Insurance</span>
+              </a>
+            </nav>
+
+            <!-- Settings -->
+            <nav class="flex-1 space-y-1 mb-8">
+              <p class="nav-section-title" style="color: ${config.secondary_text_color}">Settings</p>
+              
+              <a href="reports.html" data-page="reports" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Reports</span>
+              </a>
+
+              <a href="settings.html" data-page="settings" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Settings</span>
+              </a>
+
+              <a href="support.html" data-page="support" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Support</span>
+              </a>
+            </nav>
+
+            <!-- User Profile -->
+            <div class="surface-bg flex items-center gap-3 p-3 rounded-lg transition-smooth hover-lift" style="background-color: ${config.surface_color}; border: 1px solid rgba(255, 255, 255, 0.1)">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-white" style="background: linear-gradient(135deg, ${config.accent_color}, #8B5CF6)">
+                CM
+              </div>
+              <div class="flex-1">
+                <p id="user-name" class="primary-text text-sm font-medium" style="color: ${config.text_color}">${config.user_name}</p>
+                <p class="secondary-text text-xs" style="color: ${config.secondary_text_color}">Premium</p>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Sidebar - Mobile -->
+          <aside id="mobile-sidebar" class="mobile-sidebar md:hidden surface-bg flex flex-col p-6 overflow-y-auto scrollbar-thin" style="background-color: ${config.surface_color}">
+            <button onclick="closeSidebar()" class="self-end mb-4 p-2 rounded-lg hover:bg-white/5 transition-colors">
+              <svg class="w-6 h-6 primary-text" style="color: ${config.text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div class="mb-8">
+              <h1 class="primary-text text-2xl font-semibold tracking-tight" style="color: ${config.text_color}">${config.bank_name}</h1>
+            </div>
+
+            <div class="surface-bg rounded-xl p-5 mb-8 gradient-border transition-smooth" style="background-color: ${config.surface_color}">
+              <p class="secondary-text text-sm mb-2" style="color: ${config.secondary_text_color}">Total Balance</p>
+              <h2 id="main-balance-mobile" class="primary-text text-3xl font-bold balance-animate" style="color: ${config.text_color}">${formatCurrency(accounts.reduce((sum, acc) => sum + acc.balance, 0))}</h2>
+              <p class="accent-color text-sm mt-2" style="color: ${config.accent_color}">+2.4% this month</p>
+            </div>
+
+            <nav class="flex-1 space-y-1 mb-8">
+              <p class="nav-section-title" style="color: ${config.secondary_text_color}">Main</p>
+              
+              <a href="dashboard.html" data-page="dashboard" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Dashboard</span>
+              </a>
+              
+              <a href="accounts.html" data-page="accounts" onclick="closeSidebar()" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.accent_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <span class="primary-text font-medium text-sm" style="color: ${config.text_color}">Accounts</span>
+              </a>
+              
+              <a href="analytics.html" data-page="analytics" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Analytics</span>
+              </a>
+              
+              <a href="transfers.html" data-page="transfers" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Transfers</span>
+              </a>
+            </nav>
+
+            <nav class="flex-1 space-y-1 mb-8">
+              <p class="nav-section-title" style="color: ${config.secondary_text_color}">Investments</p>
+              
+              <a href="crypto.html" data-page="crypto" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Crypto</span>
+              </a>
+              
+              <a href="stocks.html" data-page="stocks" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8L5.5 19.5" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Stocks</span>
+              </a>
+
+              <a href="funds.html" data-page="funds" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Funds</span>
+              </a>
+            </nav>
+
+            <nav class="flex-1 space-y-1 mb-8">
+              <p class="nav-section-title" style="color: ${config.secondary_text_color}">Services</p>
+              
+              <a href="savings.html" data-page="savings" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Savings</span>
+              </a>
+
+              <a href="cards.html" data-page="cards" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Cards</span>
+              </a>
+
+              <a href="loans.html" data-page="loans" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Loans</span>
+              </a>
+
+              <a href="insurance.html" data-page="insurance" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m7.773-4.227A10 10 0 1112 2.236a10 10 0 017.773 18.764z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Insurance</span>
+              </a>
+            </nav>
+
+            <nav class="flex-1 space-y-1 mb-8">
+              <p class="nav-section-title" style="color: ${config.secondary_text_color}">Settings</p>
+              
+              <a href="reports.html" data-page="reports" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Reports</span>
+              </a>
+
+              <a href="settings.html" data-page="settings" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Settings</span>
+              </a>
+
+              <a href="support.html" data-page="support" onclick="closeSidebar()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+                <svg class="w-5 h-5" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <span class="secondary-text font-medium text-sm" style="color: ${config.secondary_text_color}">Support</span>
+              </a>
+            </nav>
+
+            <div class="surface-bg flex items-center gap-3 p-3 rounded-lg transition-smooth" style="background-color: ${config.surface_color}; border: 1px solid rgba(255, 255, 255, 0.1)">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-white" style="background: linear-gradient(135deg, ${config.accent_color}, #8B5CF6)">
+                CM
+              </div>
+              <div class="flex-1">
+                <p class="primary-text text-sm font-medium" style="color: ${config.text_color}">${config.user_name}</p>
+                <p class="secondary-text text-xs" style="color: ${config.secondary_text_color}">Premium</p>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Main Content -->
+          <main class="flex-1 flex flex-col h-full overflow-auto">
+            <!-- Header -->
+            <header class="surface-bg border-b p-4 md:p-6 flex items-center justify-between gap-4 sticky top-0 z-30" style="background-color: ${config.surface_color}; border-color: rgba(255, 255, 255, 0.1)">
+              <button id="hamburger-btn" onclick="toggleSidebar()" class="hamburger md:hidden p-2 rounded-lg hover:bg-white/5 transition-colors primary-text" style="color: ${config.text_color}">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+              </button>
+
+              <div class="flex-1 max-w-xl">
+                <div class="surface-bg flex items-center gap-3 px-3 md:px-4 py-2 md:py-3 rounded-lg transition-smooth" style="background-color: ${config.surface_color}; border: 1px solid rgba(255, 255, 255, 0.1)">
+                  <svg class="w-4 h-4 md:w-5 md:h-5 secondary-text flex-shrink-0" style="color: ${config.secondary_text_color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input type="text" placeholder="Search accounts..." class="bg-transparent flex-1 outline-none primary-text text-sm md:text-base" style="color: ${config.text_color}" />
+                </div>
+              </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="flex-1 p-4 md:p-6 overflow-auto">
+              <!-- Page Title -->
+              <div class="mb-8">
+                <h1 class="primary-text text-3xl md:text-4xl font-bold" style="color: ${config.text_color}">My Accounts</h1>
+                <p class="secondary-text text-sm md:text-base mt-2" style="color: ${config.secondary_text_color}">Manage and monitor all your accounts in one place</p>
+              </div>
+
+              <!-- Filter Tabs -->
+              <div class="flex gap-2 md:gap-4 mb-8 overflow-x-auto pb-2">
+                <button data-tab="all-accounts" class="tab-button active px-4 py-2 text-sm md:text-base font-medium whitespace-nowrap" style="color: ${config.text_color}" onclick="setActiveTab('all-accounts')">
+                  All Accounts
+                </button>
+                <button data-tab="checking" class="tab-button px-4 py-2 text-sm md:text-base font-medium whitespace-nowrap" style="color: ${config.secondary_text_color}" onclick="setActiveTab('checking')">
+                  Checking
+                </button>
+                <button data-tab="savings" class="tab-button px-4 py-2 text-sm md:text-base font-medium whitespace-nowrap" style="color: ${config.secondary_text_color}" onclick="setActiveTab('savings')">
+                  Savings
+                </button>
+                <button data-tab="investment" class="tab-button px-4 py-2 text-sm md:text-base font-medium whitespace-nowrap" style="color: ${config.secondary_text_color}" onclick="setActiveTab('investment')">
+                  Investment
+                </button>
+              </div>
+
+              <!-- Accounts Grid -->
+              <div id="accounts-container" class="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="surface-bg border-t p-3 md:p-4 text-center" style="background-color: ${config.surface_color}; border-color: rgba(255, 255, 255, 0.1)">
+              <p id="footer-text" class="secondary-text text-xs md:text-sm" style="color: ${config.secondary_text_color}">${config.footer_text}</p>
+            </footer>
+          </main>
+        </div>
+      `;
+
+      renderAccounts();
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: async (newConfig) => {
+          config = { ...config, ...newConfig };
+          document.body.style.backgroundColor = config.background_color || defaultConfig.background_color;
+          renderAccounts();
+        },
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.background_color || defaultConfig.background_color,
+              set: (value) => {
+                config.background_color = value;
+                window.elementSdk.setConfig({ background_color: value });
+              }
+            },
+            {
+              get: () => config.surface_color || defaultConfig.surface_color,
+              set: (value) => {
+                config.surface_color = value;
+                window.elementSdk.setConfig({ surface_color: value });
+              }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => {
+                config.text_color = value;
+                window.elementSdk.setConfig({ text_color: value });
+              }
+            },
+            {
+              get: () => config.accent_color || defaultConfig.accent_color,
+              set: (value) => {
+                config.accent_color = value;
+                window.elementSdk.setConfig({ accent_color: value });
+              }
+            },
+            {
+              get: () => config.secondary_text_color || defaultConfig.secondary_text_color,
+              set: (value) => {
+                config.secondary_text_color = value;
+                window.elementSdk.setConfig({ secondary_text_color: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ['bank_name', config.bank_name || defaultConfig.bank_name],
+          ['user_name', config.user_name || defaultConfig.user_name],
+          ['footer_text', config.footer_text || defaultConfig.footer_text]
+        ])
+      });
+    }
+
+    initApp();
+  </script>
+ </body>
+  </html>
