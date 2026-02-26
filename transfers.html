@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="es" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BankUp - Transfers</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { box-sizing: border-box; }
+    * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      letter-spacing: -0.01em;
+    }
+
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(0, 112, 255, 0.3); }
+      50% { box-shadow: 0 0 30px rgba(0, 112, 255, 0.5); }
+    }
+
+    .glow-effect { animation: glow-pulse 3s ease-in-out infinite; }
+
+    .glass-morphism {
+      background: rgba(18, 18, 18, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .glossy-card { position: relative; overflow: hidden; }
+    .glossy-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.5s;
+    }
+    .glossy-card:hover::before { left: 100%; }
+
+    .nav-item {
+      position: relative;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+    .nav-item::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 3px; height: 0;
+      background: #0070FF;
+      transition: height 0.3s ease;
+      box-shadow: 0 0 10px rgba(0, 112, 255, 0.8);
+    }
+    .nav-item:hover::before, .nav-item.active::before { height: 60%; }
+
+    .gradient-border {
+      position: relative;
+      background: #121212;
+    }
+    .gradient-border::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(0, 112, 255, 0.5), rgba(255, 255, 255, 0.1));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+
+    .sidebar-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 40; opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    .sidebar-backdrop.active { opacity: 1; pointer-events: auto; }
+
+    .mobile-sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: 280px; z-index: 50;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+    .mobile-sidebar.active { transform: translateX(0); }
+
+    .hamburger-line {
+      display: block; width: 24px; height: 2px;
+      background-color: currentColor;
+      transition: all 0.3s ease;
+    }
+    .hamburger-line:not(:last-child) { margin-bottom: 5px; }
+    .hamburger.active .hamburger-line:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.active .hamburger-line:nth-child(2) { opacity: 0; }
+    .hamburger.active .hamburger-line:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .transition-smooth { transition: all 0.3s ease; }
+    .hover-lift:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 112, 255, 0.2);
+    }
+    a { transition: all 0.3s ease; }
+    .nav-item.active { background-color: rgba(0, 112, 255, 0.1); }
+
+    .nav-section-title {
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 0.75rem 1rem; margin-top: 0.5rem; opacity: 0.6;
+    }
+
+    .pulse-dot {
+      display: inline-block; width: 8px; height: 8px;
+      border-radius: 50%; background: #0070FF;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem; font-weight: 500;
+    }
+    .badge-success { background-color: rgba(34,197,94,0.2); color: #22c55e; }
+    .badge-warning { background-color: rgba(245,158,11,0.2); color: #f59e0b; }
+    .badge-info { background-color: rgba(59,130,246,0.2); color: #3b82f6; }
+    .badge-error { background-color: rgba(239,68,68,0.2); color: #ef4444; }
+
+    .transfer-input {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      color: #fff;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      font-size: 0.875rem;
+    }
+    .transfer-input:focus {
+      border-color: rgba(0,112,255,0.6);
+      box-shadow: 0 0 0 3px rgba(0,112,255,0.15);
+    }
+    .transfer-input::placeholder { color: #9CA3AF; }
+    .transfer-input option { background: #121212; }
+
+    .contact-card {
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+    .contact-card:hover { border-color: rgba(0,112,255,0.4); transform: translateY(-2px); }
+    .contact-card.selected { border-color: #0070FF; box-shadow: 0 0 15px rgba(0,112,255,0.3); }
+
+    .amount-preset {
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03);
+      color: #9CA3AF;
+      font-size: 0.875rem;
+      transition: all 0.3s ease;
+    }
+    .amount-preset:hover, .amount-preset.active {
+      border-color: #0070FF;
+      background: rgba(0,112,255,0.1);
+      color: #fff;
+    }
+
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .slide-up { animation: slide-up 0.4s ease-out forwards; }
+
+    .tx-row {
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background 0.2s;
+    }
+    .tx-row:last-child { border-bottom: none; }
+    .tx-row:hover { background: rgba(255,255,255,0.03); }
+
+    .step-indicator {
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .step-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .step-line { flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
+    .step-line.active { background: #0070FF; }
+
+    @keyframes success-pop {
+      0% { transform: scale(0.5); opacity: 0; }
+      70% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .success-pop { animation: success-pop 0.5s ease-out forwards; }
+  </style>
+ </head>
+ <body class="h-full bg-black text-white overflow-auto">
+  <div id="root" class="w-full h-full"></div>
+  <script>
+    const accentColor = '#0070FF';
+    const surfaceColor = '#121212';
+    const textColor = '#FFFFFF';
+    const secondaryText = '#9CA3AF';
+    const bgColor = '#050505';
+    const bankName = 'BankUp';
+    const userName = 'Carlos M.';
+    const balance = 45829.50;
+
+    let isSidebarOpen = false;
+    let selectedContact = null;
+    let currentStep = 1;
+
+    const contacts = [
+      { id: 1, name: 'Ana García', initials: 'AG', account: '**** 4821', bank: 'Santander', color: '#8B5CF6' },
+      { id: 2, name: 'Luis Pérez', initials: 'LP', account: '**** 2039', bank: 'BBVA', color: '#EC4899' },
+      { id: 3, name: 'María López', initials: 'ML', account: '**** 7714', bank: 'CaixaBank', color: '#10B981' },
+      { id: 4, name: 'Carlos Ruiz', initials: 'CR', account: '**** 5503', bank: 'Sabadell', color: '#F59E0B' },
+    ];
+
+    const recentTransfers = [
+      { id: 1, name: 'Ana García', amount: -250.00, date: 'Today, 10:32', status: 'completed', type: 'sent' },
+      { id: 2, name: 'Luis Pérez', amount: 500.00, date: 'Yesterday, 18:15', status: 'completed', type: 'received' },
+      { id: 3, name: 'María López', amount: -75.50, date: '24 Feb, 09:00', status: 'pending', type: 'sent' },
+      { id: 4, name: 'Carlos Ruiz', amount: -1200.00, date: '22 Feb, 14:20', status: 'completed', type: 'sent' },
+      { id: 5, name: 'Self Transfer', amount: -3000.00, date: '20 Feb, 11:05', status: 'completed', type: 'internal' },
+    ];
+
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(amount);
+    }
+
+    function toggleSidebar() {
+      isSidebarOpen = !isSidebarOpen;
+      const sidebar = document.getElementById('mobile-sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      const hamburger = document.getElementById('hamburger-btn');
+      if (isSidebarOpen) {
+        sidebar.classList.add('active'); backdrop.classList.add('active'); hamburger.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      } else {
+        sidebar.classList.remove('active'); backdrop.classList.remove('active'); hamburger.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    function closeSidebar() { if (isSidebarOpen) toggleSidebar(); }
+
+    function selectContact(id) {
+      selectedContact = id;
+      document.querySelectorAll('.contact-card').forEach(c => c.classList.remove('selected'));
+      document.querySelector(`[data-contact="${id}"]`)?.classList.add('selected');
+    }
+
+    function selectPreset(amount, btn) {
+      document.querySelectorAll('.amount-preset').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('amount-input').value = amount;
+    }
+
+    function goToStep(step) {
+      if (step === 2) {
+        const amount = document.getElementById('amount-input').value;
+        if (!selectedContact || !amount || parseFloat(amount) <= 0) {
+          showToast('Please select a contact and enter a valid amount.', 'error');
+          return;
+        }
+      }
+      currentStep = step;
+      document.querySelectorAll('.step-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById(`step-${step}`).classList.remove('hidden');
+      document.getElementById(`step-${step}`).classList.add('slide-up');
+      updateStepIndicators();
+      if (step === 2) populateReview();
+    }
+
+    function updateStepIndicators() {
+      [1, 2, 3].forEach(i => {
+        const dot = document.getElementById(`step-dot-${i}`);
+        const line = document.getElementById(`step-line-${i}`);
+        if (i < currentStep) {
+          dot.style.background = accentColor; dot.style.color = '#fff';
+          if (line) line.classList.add('active');
+        } else if (i === currentStep) {
+          dot.style.background = accentColor; dot.style.color = '#fff';
+        } else {
+          dot.style.background = 'rgba(255,255,255,0.1)'; dot.style.color = secondaryText;
+          if (line) line.classList.remove('active');
+        }
+      });
+    }
+
+    function populateReview() {
+      const contact = contacts.find(c => c.id === selectedContact);
+      const amount = parseFloat(document.getElementById('amount-input').value);
+      const note = document.getElementById('note-input').value;
+      const fee = amount >= 1000 ? 0 : 0.50;
+      document.getElementById('review-to').textContent = contact.name;
+      document.getElementById('review-account').textContent = contact.account + ' · ' + contact.bank;
+      document.getElementById('review-amount').textContent = formatCurrency(amount);
+      document.getElementById('review-fee').textContent = fee === 0 ? 'Free' : formatCurrency(fee);
+      document.getElementById('review-total').textContent = formatCurrency(amount + fee);
+      document.getElementById('review-note').textContent = note || '—';
+    }
+
+    function confirmTransfer() {
+      goToStep(3);
+      setTimeout(() => {
+        document.getElementById('success-icon').classList.add('success-pop');
+      }, 100);
+    }
+
+    function newTransfer() {
+      currentStep = 1;
+      selectedContact = null;
+      document.getElementById('amount-input').value = '';
+      document.getElementById('note-input').value = '';
+      document.querySelectorAll('.contact-card').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('.amount-preset').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.step-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById('step-1').classList.remove('hidden');
+      updateStepIndicators();
+    }
+
+    function showToast(msg, type) {
+      const existing = document.getElementById('toast');
+      if (existing) existing.remove();
+      const toast = document.createElement('div');
+      toast.id = 'toast';
+      toast.className = `fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl text-sm font-medium slide-up`;
+      toast.style.cssText = `background: ${type === 'error' ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)'}; border: 1px solid ${type === 'error' ? 'rgba(239,68,68,0.4)' : 'rgba(34,197,94,0.4)'}; color: ${type === 'error' ? '#ef4444' : '#22c55e'}; backdrop-filter: blur(10px);`;
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function buildSidebarNav(mobile) {
+      const onclick = mobile ? 'onclick="closeSidebar()"' : '';
+      return `
+        <nav class="flex-1 space-y-1 mb-8">
+          <p class="nav-section-title" style="color:${secondaryText}">Main</p>
+          <a href="dashboard.html" data-page="dashboard" ${onclick} class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+            <svg class="w-5 h-5" style="color:${secondaryText}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <span class="font-medium text-sm" style="color:${secondaryText}">Dashboard</span>
+          </a>
+          <a href="accounts.html" data-page="accounts" ${onclick} class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+            <svg class="w-5 h-5" style="color:${secondaryText}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <span class="font-medium text-sm" style="color:${secondaryText}">Accounts</span>
+          </a>
+          <a href="analytics.html" data-page="analytics" ${onclick} class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+            <svg class="w-5 h-5" style="color:${secondaryText}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <span class="font-medium text-sm" style="color:${secondaryText}">Analytics</span>
+          </a>
+          <a href="transfers.html" data-page="transfers" ${onclick} class="nav-item active flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+            <svg class="w-5 h-5" style="color:${accentColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+            <span class="font-medium text-sm" style="color:${textColor}">Transfers</span>
+          </a>
+        </nav>
+        <nav class="flex-1 space-y-1 mb-8">
+          <p class="nav-section-title" style="color:${secondaryText}">Investments</p>
+          <a href="crypto.html" ${onclick} class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+            <svg class="w-5 h-5" style="color:${secondaryText}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span class="font-medium text-sm" style="color:${secondaryText}">Crypto</span>
+          </a>
+          <a href="stocks.html" ${onclick} class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+            <svg class="w-5 h-5" style="color:${secondaryText}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8L5.5 19.5"/></svg>
+            <span class="font-medium text-sm" style="color:${secondaryText}">Stocks</span>
+          </a>
+          <a href="funds.html" ${onclick} class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+            <svg class="w-5 h-5" style="color:${secondaryText}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span class="font-medium text-sm" style="color:${secondaryText}">Funds</span>
+          </a>
+        </nav>
+        <nav class="flex-1 space-y-1 mb-8">
+          <p class="nav-section-title" style="color:${secondaryText}">Services</p>
+          <a href="savings.html" ${onclick} class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+            <svg class="w-5 h-5" style="color:${secondaryText}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span class="font-medium text-sm" style="color:${secondaryText}">Savings</span>
+          </a>
+          <a href="cards.html" ${onclick} class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+            <svg class="w-5 h-5" style="color:${secondaryText}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <span class="font-medium text-sm" style="color:${secondaryText}">Cards</span>
+          </a>
+          <a href="loans.html" ${onclick} class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+            <svg class="w-5 h-5" style="color:${secondaryText}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span class="font-medium text-sm" style="color:${secondaryText}">Loans</span>
+          </a>
+          <a href="insurance.html" ${onclick} class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+            <svg class="w-5 h-5" style="color:${secondaryText}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m7.773-4.227A10 10 0 1112 2.236a10 10 0 017.773 18.764z"/></svg>
+            <span class="font-medium text-sm" style="color:${secondaryText}">Insurance</span>
+          </a>
+        </nav>
+        <nav class="flex-1 space-y-1 mb-8">
+          <p class="nav-section-title" style="color:${secondaryText}">Settings</p>
+          <a href="reports.html" ${onclick} class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+            <svg class="w-5 h-5" style="color:${secondaryText}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span class="font-medium text-sm" style="color:${secondaryText}">Reports</span>
+          </a>
+          <a href="settings.html" ${onclick} class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+            <svg class="w-5 h-5" style="color:${secondaryText}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span class="font-medium text-sm" style="color:${secondaryText}">Settings</span>
+          </a>
+          <a href="support.html" ${onclick} class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/5">
+            <svg class="w-5 h-5" style="color:${secondaryText}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            <span class="font-medium text-sm" style="color:${secondaryText}">Support</span>
+          </a>
+        </nav>
+      `;
+    }
+
+    function renderContacts() {
+      return contacts.map(c => `
+        <div class="contact-card rounded-xl p-3 md:p-4 flex flex-col items-center gap-2 cursor-pointer transition-smooth"
+             data-contact="${c.id}"
+             onclick="selectContact(${c.id})"
+             style="background: rgba(255,255,255,0.03); border: 2px solid transparent;">
+          <div class="w-12 h-12 rounded-full flex items-center justify-center font-semibold text-white text-sm flex-shrink-0" style="background: linear-gradient(135deg, ${c.color}, ${c.color}aa)">
+            ${c.initials}
+          </div>
+          <div class="text-center">
+            <p class="font-medium text-xs text-white truncate max-w-[80px]">${c.name.split(' ')[0]}</p>
+            <p class="text-xs" style="color:${secondaryText}">${c.bank}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderRecentTransfers() {
+      return recentTransfers.map(tx => `
+        <div class="tx-row p-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background: ${tx.type === 'received' ? 'rgba(34,197,94,0.1)' : tx.type === 'internal' ? 'rgba(0,112,255,0.1)' : 'rgba(239,68,68,0.1)'}">
+                <svg class="w-5 h-5" style="color: ${tx.type === 'received' ? '#22c55e' : tx.type === 'internal' ? accentColor : '#ef4444'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  ${tx.type === 'received'
+                    ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>'
+                    : tx.type === 'internal'
+                    ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>'
+                    : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7M12 3v18"/>'}
+                </svg>
+              </div>
+              <div>
+                <p class="font-medium text-sm text-white">${tx.name}</p>
+                <p class="text-xs" style="color:${secondaryText}">${tx.date}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="font-semibold text-sm" style="color: ${tx.amount < 0 ? '#ef4444' : '#22c55e'}">${tx.amount > 0 ? '+' : ''}${formatCurrency(Math.abs(tx.amount))}</p>
+              <span class="badge ${tx.status === 'completed' ? 'badge-success' : 'badge-warning'}">${tx.status}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function initApp() {
+      const root = document.getElementById('root');
+      root.innerHTML = `
+        <div id="sidebar-backdrop" class="sidebar-backdrop md:hidden" onclick="closeSidebar()"></div>
+
+        <div class="w-full flex flex-col md:flex-row h-full" style="background-color:${bgColor}">
+
+          <!-- Desktop Sidebar -->
+          <aside class="hidden md:flex w-72 flex-col p-6 border-r overflow-y-auto scrollbar-thin flex-shrink-0" style="background-color:${surfaceColor}; border-color: rgba(255,255,255,0.1)">
+            <div class="mb-8">
+              <h1 class="text-2xl font-semibold tracking-tight text-white">${bankName}</h1>
+            </div>
+            <div class="rounded-xl p-5 mb-8 gradient-border transition-smooth hover-lift" style="background-color:${surfaceColor}">
+              <p class="text-sm mb-2" style="color:${secondaryText}">Total Balance</p>
+              <h2 class="text-3xl font-bold text-white">${formatCurrency(balance)}</h2>
+              <p class="text-sm mt-2" style="color:${accentColor}">+2.4% this month</p>
+            </div>
+            ${buildSidebarNav(false)}
+            <div class="flex items-center gap-3 p-3 rounded-lg transition-smooth hover-lift" style="background-color:${surfaceColor}; border: 1px solid rgba(255,255,255,0.1)">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-white" style="background: linear-gradient(135deg, ${accentColor}, #8B5CF6)">CM</div>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-white">${userName}</p>
+                <p class="text-xs" style="color:${secondaryText}">Premium</p>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Mobile Sidebar -->
+          <aside id="mobile-sidebar" class="mobile-sidebar md:hidden flex flex-col p-6 overflow-y-auto scrollbar-thin" style="background-color:${surfaceColor}">
+            <button onclick="closeSidebar()" class="self-end mb-4 p-2 rounded-lg hover:bg-white/5 transition-colors">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <div class="mb-8"><h1 class="text-2xl font-semibold tracking-tight text-white">${bankName}</h1></div>
+            <div class="rounded-xl p-5 mb-8 gradient-border" style="background-color:${surfaceColor}">
+              <p class="text-sm mb-2" style="color:${secondaryText}">Total Balance</p>
+              <h2 class="text-3xl font-bold text-white">${formatCurrency(balance)}</h2>
+              <p class="text-sm mt-2" style="color:${accentColor}">+2.4% this month</p>
+            </div>
+            ${buildSidebarNav(true)}
+            <div class="flex items-center gap-3 p-3 rounded-lg" style="background-color:${surfaceColor}; border: 1px solid rgba(255,255,255,0.1)">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-white" style="background: linear-gradient(135deg, ${accentColor}, #8B5CF6)">CM</div>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-white">${userName}</p>
+                <p class="text-xs" style="color:${secondaryText}">Premium</p>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Main Content -->
+          <main class="flex-1 flex flex-col overflow-auto">
+            <!-- Header -->
+            <header class="border-b p-4 md:p-6 flex items-center justify-between gap-4 sticky top-0 z-30" style="background-color:${surfaceColor}; border-color: rgba(255,255,255,0.1)">
+              <button id="hamburger-btn" onclick="toggleSidebar()" class="hamburger md:hidden p-2 rounded-lg hover:bg-white/5 transition-colors text-white">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+              </button>
+              <div class="flex-1 max-w-xl">
+                <div class="flex items-center gap-3 px-3 md:px-4 py-2 md:py-3 rounded-lg" style="background-color:${surfaceColor}; border: 1px solid rgba(255,255,255,0.1)">
+                  <svg class="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" style="color:${secondaryText}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                  <input type="text" placeholder="Search transfers..." class="bg-transparent flex-1 outline-none text-white text-sm md:text-base" />
+                  <kbd class="hidden md:block px-2 py-1 text-xs rounded" style="background-color: rgba(255,255,255,0.05); color:${secondaryText}">⌘K</kbd>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 md:gap-4">
+                <button class="p-2 rounded-lg hover:bg-white/5 transition-colors relative">
+                  <svg class="w-5 h-5 md:w-6 md:h-6" style="color:${secondaryText}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                  <span class="pulse-dot absolute top-1 right-1"></span>
+                </button>
+              </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="flex-1 p-4 md:p-6 overflow-auto">
+
+              <!-- Page Title -->
+              <div class="mb-6">
+                <h1 class="text-2xl md:text-3xl font-bold text-white">Transfers</h1>
+                <p class="text-sm mt-1" style="color:${secondaryText}">Send money instantly to your contacts</p>
+              </div>
+
+              <!-- Stats Row -->
+              <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+                <div class="rounded-xl p-4 md:p-5 hover-lift transition-smooth" style="background-color:${surfaceColor}">
+                  <p class="text-xs md:text-sm" style="color:${secondaryText}">Sent This Month</p>
+                  <p class="text-lg md:text-xl font-bold mt-2 text-white">$4,820</p>
+                  <p class="text-xs mt-1" style="color:#ef4444">12 transfers</p>
+                </div>
+                <div class="rounded-xl p-4 md:p-5 hover-lift transition-smooth" style="background-color:${surfaceColor}">
+                  <p class="text-xs md:text-sm" style="color:${secondaryText}">Received</p>
+                  <p class="text-lg md:text-xl font-bold mt-2 text-white">$3,500</p>
+                  <p class="text-xs mt-1 text-green-400">5 transfers</p>
+                </div>
+                <div class="rounded-xl p-4 md:p-5 hover-lift transition-smooth" style="background-color:${surfaceColor}">
+                  <p class="text-xs md:text-sm" style="color:${secondaryText}">Pending</p>
+                  <p class="text-lg md:text-xl font-bold mt-2 text-white">$75.50</p>
+                  <p class="text-xs mt-1" style="color:#f59e0b">1 transfer</p>
+                </div>
+                <div class="rounded-xl p-4 md:p-5 hover-lift transition-smooth" style="background-color:${surfaceColor}">
+                  <p class="text-xs md:text-sm" style="color:${secondaryText}">Avg Transfer</p>
+                  <p class="text-lg md:text-xl font-bold mt-2 text-white">$401.7</p>
+                  <p class="text-xs mt-1" style="color:${accentColor}">this month</p>
+                </div>
+              </div>
+
+              <!-- Transfer Form + Recent -->
+              <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6">
+
+                <!-- Transfer Form (3 cols) -->
+                <div class="lg:col-span-3 rounded-2xl p-4 md:p-6 glass-morphism hover-lift transition-smooth" style="background-color:${surfaceColor}">
+
+                  <!-- Step Indicators -->
+                  <div class="flex items-center gap-2 mb-6">
+                    <div class="step-dot" id="step-dot-1" style="background:${accentColor}; color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:600;">1</div>
+                    <div class="flex-1 h-px" id="step-line-1" style="background: rgba(255,255,255,0.1)"></div>
+                    <div class="step-dot" id="step-dot-2" style="background:rgba(255,255,255,0.1); color:${secondaryText}; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:600;">2</div>
+                    <div class="flex-1 h-px" id="step-line-2" style="background: rgba(255,255,255,0.1)"></div>
+                    <div class="step-dot" id="step-dot-3" style="background:rgba(255,255,255,0.1); color:${secondaryText}; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:600;">3</div>
+                  </div>
+
+                  <!-- Step 1: Details -->
+                  <div id="step-1" class="step-panel slide-up">
+                    <h2 class="text-lg font-semibold text-white mb-4">New Transfer</h2>
+
+                    <!-- From Account -->
+                    <div class="mb-4">
+                      <label class="block text-xs font-medium mb-2" style="color:${secondaryText}">FROM ACCOUNT</label>
+                      <select class="transfer-input">
+                        <option>Checking Account — $45,829.50</option>
+                        <option>Savings Account — $12,450.00</option>
+                        <option>Investment Account — $8,150.00</option>
+                      </select>
+                    </div>
+
+                    <!-- To Contact -->
+                    <div class="mb-4">
+                      <label class="block text-xs font-medium mb-2" style="color:${secondaryText}">TO (SELECT CONTACT)</label>
+                      <div class="grid grid-cols-4 gap-2 md:gap-3">
+                        ${renderContacts()}
+                      </div>
+                      <div class="mt-3">
+                        <input type="text" placeholder="Or enter IBAN / account number..." class="transfer-input" />
+                      </div>
+                    </div>
+
+                    <!-- Amount -->
+                    <div class="mb-4">
+                      <label class="block text-xs font-medium mb-2" style="color:${secondaryText}">AMOUNT (USD)</label>
+                      <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 font-semibold" style="color:${secondaryText}">$</span>
+                        <input id="amount-input" type="number" min="0.01" step="0.01" placeholder="0.00" class="transfer-input pl-8 text-lg font-semibold" />
+                      </div>
+                      <div class="flex gap-2 mt-2 flex-wrap">
+                        <button class="amount-preset" onclick="selectPreset('50', this)">$50</button>
+                        <button class="amount-preset" onclick="selectPreset('100', this)">$100</button>
+                        <button class="amount-preset" onclick="selectPreset('250', this)">$250</button>
+                        <button class="amount-preset" onclick="selectPreset('500', this)">$500</button>
+                        <button class="amount-preset" onclick="selectPreset('1000', this)">$1,000</button>
+                      </div>
+                    </div>
+
+                    <!-- Note -->
+                    <div class="mb-6">
+                      <label class="block text-xs font-medium mb-2" style="color:${secondaryText}">NOTE (OPTIONAL)</label>
+                      <input id="note-input" type="text" placeholder="e.g. Rent, Dinner split..." class="transfer-input" />
+                    </div>
+
+                    <!-- Transfer Type -->
+                    <div class="mb-6">
+                      <label class="block text-xs font-medium mb-2" style="color:${secondaryText}">TRANSFER TYPE</label>
+                      <div class="grid grid-cols-3 gap-2">
+                        <label class="flex items-center gap-2 p-3 rounded-lg cursor-pointer border border-transparent hover:border-blue-500/40 transition-all" style="background:rgba(255,255,255,0.03)">
+                          <input type="radio" name="type" value="instant" checked class="accent-blue-500" />
+                          <div>
+                            <p class="text-xs font-medium text-white">Instant</p>
+                            <p class="text-xs" style="color:${secondaryText}">Free · Now</p>
+                          </div>
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-lg cursor-pointer border border-transparent hover:border-blue-500/40 transition-all" style="background:rgba(255,255,255,0.03)">
+                          <input type="radio" name="type" value="standard" class="accent-blue-500" />
+                          <div>
+                            <p class="text-xs font-medium text-white">Standard</p>
+                            <p class="text-xs" style="color:${secondaryText}">Free · 1–2d</p>
+                          </div>
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-lg cursor-pointer border border-transparent hover:border-blue-500/40 transition-all" style="background:rgba(255,255,255,0.03)">
+                          <input type="radio" name="type" value="scheduled" class="accent-blue-500" />
+                          <div>
+                            <p class="text-xs font-medium text-white">Scheduled</p>
+                            <p class="text-xs" style="color:${secondaryText}">Pick date</p>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
+                    <button onclick="goToStep(2)" class="w-full py-3 rounded-xl text-white font-semibold text-sm glow-effect transition-all hover:opacity-90" style="background:${accentColor}">
+                      Continue →
+                    </button>
+                  </div>
+
+                  <!-- Step 2: Review -->
+                  <div id="step-2" class="step-panel hidden">
+                    <h2 class="text-lg font-semibold text-white mb-6">Review Transfer</h2>
+                    <div class="rounded-xl p-5 mb-6 space-y-4" style="background:rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08)">
+                      <div class="flex justify-between">
+                        <span class="text-sm" style="color:${secondaryText}">To</span>
+                        <div class="text-right">
+                          <p id="review-to" class="text-sm font-medium text-white"></p>
+                          <p id="review-account" class="text-xs" style="color:${secondaryText}"></p>
+                        </div>
+                      </div>
+                      <div class="h-px" style="background:rgba(255,255,255,0.06)"></div>
+                      <div class="flex justify-between">
+                        <span class="text-sm" style="color:${secondaryText}">Amount</span>
+                        <span id="review-amount" class="text-sm font-semibold text-white"></span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-sm" style="color:${secondaryText}">Transfer fee</span>
+                        <span id="review-fee" class="text-sm text-white"></span>
+                      </div>
+                      <div class="h-px" style="background:rgba(255,255,255,0.06)"></div>
+                      <div class="flex justify-between">
+                        <span class="text-sm font-semibold text-white">Total</span>
+                        <span id="review-total" class="text-base font-bold" style="color:${accentColor}"></span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-sm" style="color:${secondaryText}">Note</span>
+                        <span id="review-note" class="text-sm text-white"></span>
+                      </div>
+                    </div>
+                    <div class="flex gap-3">
+                      <button onclick="goToStep(1)" class="flex-1 py-3 rounded-xl font-semibold text-sm transition-all hover:bg-white/10" style="border: 1px solid rgba(255,255,255,0.1); color:${secondaryText}">
+                        ← Back
+                      </button>
+                      <button onclick="confirmTransfer()" class="flex-1 py-3 rounded-xl text-white font-semibold text-sm glow-effect transition-all hover:opacity-90" style="background:${accentColor}">
+                        Confirm & Send
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Step 3: Success -->
+                  <div id="step-3" class="step-panel hidden text-center py-8">
+                    <div id="success-icon" class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 opacity-0" style="background: rgba(34,197,94,0.15); border: 2px solid #22c55e">
+                      <svg class="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <h2 class="text-xl font-bold text-white mb-2">Transfer Sent!</h2>
+                    <p class="text-sm mb-6" style="color:${secondaryText}">Your transfer has been processed successfully. The recipient will receive the funds shortly.</p>
+                    <div class="rounded-xl p-4 mb-6 text-left" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08)">
+                      <p class="text-xs mb-1" style="color:${secondaryText}">Transaction ID</p>
+                      <p class="text-sm font-mono font-medium text-white">#TXN-2026-0048291</p>
+                    </div>
+                    <div class="flex gap-3">
+                      <button onclick="newTransfer()" class="flex-1 py-3 rounded-xl font-semibold text-sm transition-all hover:bg-white/10" style="border:1px solid rgba(255,255,255,0.1); color:${secondaryText}">
+                        New Transfer
+                      </button>
+                      <button onclick="showToast('Receipt downloaded!', 'success')" class="flex-1 py-3 rounded-xl text-white font-semibold text-sm transition-all hover:opacity-90" style="background:${accentColor}">
+                        Download Receipt
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Recent Transfers (2 cols) -->
+                <div class="lg:col-span-2 rounded-2xl overflow-hidden hover-lift transition-smooth" style="background-color:${surfaceColor}; border: 1px solid rgba(255,255,255,0.1)">
+                  <div class="p-4 md:p-6 border-b" style="border-color: rgba(255,255,255,0.08)">
+                    <h3 class="text-base md:text-lg font-semibold text-white">Recent Transfers</h3>
+                  </div>
+                  <div>
+                    ${renderRecentTransfers()}
+                  </div>
+                  <div class="p-4 border-t" style="border-color: rgba(255,255,255,0.08)">
+                    <a href="analytics.html" class="text-sm font-medium hover:opacity-80 transition-opacity" style="color:${accentColor}">View all transfers →</a>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Footer -->
+            <footer class="border-t p-3 md:p-4 text-center" style="background-color:${surfaceColor}; border-color: rgba(255,255,255,0.1)">
+              <p class="text-xs md:text-sm" style="color:${secondaryText}">© 2026 BankUp Global. Secure Banking</p>
+            </footer>
+          </main>
+        </div>
+      `;
+    }
+
+    initApp();
+  </script>
+ </body>
+</html>
